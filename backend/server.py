@@ -7,7 +7,8 @@ CORS(app)
 
 @app.route('/new_game')
 def newGame():
-    return str(initializeNewGame())
+    id, turn = initializeNewGame()
+    return {'id': id, 'turn': turn}
 
 @app.route('/state', methods=["POST"])
 def getState():
@@ -19,6 +20,6 @@ def processPlayerDecision():
     id = request.json['id']
     decision = request.json['decision']
     applyDecision(id, decision)
-    applyDecision(id, -1)
+    return ""
 
 app.run(debug=True)

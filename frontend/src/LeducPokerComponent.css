@@ -1,0 +1,68 @@
+.botCard {
+    width: 100px;
+    position: absolute;
+    top: 5%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+}
+
+.communityCard {
+    width: 100px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.playerCard {
+    width: 100px;
+    position: absolute;
+    top: 80%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+}
+
+.pot {
+    position: absolute;
+    top: 30%;
+    left: 50%;
+    transform: translate(-50%, 0%);
+    font-size: 24px;
+}
+
+.playerPanel {
+    position: absolute;
+    top: 80%;
+    left: 92%;
+    transform: translate(-50%, -50%);
+    color: white;
+    text-align: right;
+}
+
+.botPanel {
+    position: absolute;
+    top: 20%;
+    left: 92%;
+    transform: translate(-50%, -50%);
+    color: white;
+    text-align: right;
+}
+
+.panelTitle {
+    font-size: 24px;
+}
+
+.playerActions {
+    position: absolute;
+    top: 65%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.newGameButton {
+    position: absolute;
+    top: 92%;
+    left: 8%;
+    transform: translate(-50%, -50%);
+
+}
