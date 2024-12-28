@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import j1 from './Assets/jack_of_hearts2.png'
 import j2 from './Assets/jack_of_spades2.png'
 import q1 from './Assets/queen_of_hearts2.png'
@@ -25,7 +25,6 @@ function LeducPokerContainer() {
         height: '100vh', // Full viewport height
     };
 
-
     const [playerCard, setPlayerCard] = useState(-10000);
     const [botCard, setBotCard] = useState(-10000);
     const [communityCard, setCommunityCard] = useState(-10000);
@@ -41,6 +40,9 @@ function LeducPokerContainer() {
     const cardMappings = [j1, j2, q1, q2, k1, k2]
     const [actionList, setActionList] = useState([])
 
+    useEffect(() => {
+        startNewGame();
+    }, []);
 
     async function startNewGame() {
         const response = await axios.get(`${serverUrl}/new_game`);
