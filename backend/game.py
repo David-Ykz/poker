@@ -1,9 +1,23 @@
+import json
 import pyspiel
 import pickle
 import numpy as np
 from random import randint
+import redis
+import uuid
+from dotenv import load_dotenv
+import os
 
-existingGames = []
+load_dotenv()
+
+r = redis.Redis(
+    host=os.getenv('HOST'),
+    port=os.getenv('PORT'),
+    decode_responses=True,
+    username=os.getenv('REDIS_USERNAME'),
+    password=os.getenv('PASSWORD'),
+)
+game = pyspiel.load_game('leduc_poker', {'players': 2})
 with open('cfr_policy.pkl', "rb") as f:
     average_policy = pickle.load(f)
 
@@ -13,52 +27,33 @@ def applyRandomAction(state):
     action = np.random.choice(action_list, p=probs)
     state.apply_action(action)
 
-def initializeNewGame():
-    game = pyspiel.load_game('leduc_poker', {'players': 2})
+def newGame():
     state = game.new_initial_state()
     playerTurn = randint(0, 1)
-    applyRandomAction(state)
-    applyRandomAction(state)
-    for i in range(len(existingGames)):
-        if existingGames[i] == None:
-            existingGames[i] = {'state': state, 'playerTurn': playerTurn}
-            return i, playerTurn
-    existingGames.append({'state': state, 'playerTurn': playerTurn})
-    return len(existingGames) - 1, playerTurn
+    id = str(uuid.uuid4())
+    saveGame(id, state, playerTurn, -10000)
+    return id, playerTurn
 
-def getGameState(id):
-    print(existingGames[id])
-    aiTurn = 1 - existingGames[id]['playerTurn']
-    state = existingGames[id]['state']
+def getGame(id):
+    data = json.loads(r.get(id))
+    state = game.deserialize_state(data['state'])
+    print(state)
+    playGame(state, data['playerTurn'], 1 - data['playerTurn'])
+    return state, data['playerTurn'], data['winner']
 
-    if state.is_terminal():
-        print("terminal state")
-        return processState(state)
+def saveGame(id, state, playerTurn, winner):
+    data = {'state': state.serialize(), 'playerTurn': playerTurn, 'winner': winner}
+    r.set(id, json.dumps(data))
 
-    playGame(id)
-
-    if state.is_chance_node():
-        applyRandomAction(state)
-
-    return processState(state)
-
-def playGame(id):
-    state = existingGames[id]['state']
-    playerTurn = existingGames[id]['playerTurn']
-    aiTurn = 1 - playerTurn
+def playGame(state, playerTurn, aiTurn):
     while not (state.current_player() == playerTurn or state.is_terminal()):
         if state.is_chance_node():
             applyRandomAction(state)
         if state.current_player() == aiTurn:
-            print("ai made move")
-            applyDecision(id, -1)
+            aiDecision(state, aiTurn)
 
-
-def applyDecision(id, decision):
-    state = existingGames[id]['state']
-    playerTurn = existingGames[id]['playerTurn']
-    aiTurn = 1 - playerTurn
-    if decision == -1:
+def aiDecision(state, aiTurn):
+    if state.current_player() == aiTurn and not state.is_chance_node():
         legal_actions = state.legal_actions()
         action_probs = [
             average_policy.action_probabilities(state, player_id=aiTurn)[a]
@@ -67,12 +62,13 @@ def applyDecision(id, decision):
         action = np.random.choice(legal_actions, p=action_probs)
         state.apply_action(action)
 
-        print("ai made move", action)
-        return action
-    elif state.current_player() == playerTurn and not state.is_chance_node():
+def playerDecision(state, playerTurn, decision):
+    print(state)
+    print(playerTurn)
+    print(decision)
+    if state.current_player() == playerTurn and not state.is_chance_node():
         state.apply_action(decision)
-        print("player made move", decision)
-        return -1
+
 
 def processState(state):
     result = {}
