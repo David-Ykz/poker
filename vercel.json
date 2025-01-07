@@ -1,0 +1,8 @@
+{
+    "version": 2,
+    "projects": {
+      "frontend": { "src": "frontend/", "use": "@vercel/static" },
+      "backend": { "src": "backend/server.py", "use": "@vercel/python" }
+    }
+  }
+  
